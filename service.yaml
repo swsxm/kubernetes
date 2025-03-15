@@ -1,0 +1,29 @@
+apiVersion: v1
+kind: Pod
+metadata:
+    name: simple-httpd
+    namespace: test
+spec:
+    containers:
+        - name: httpd
+          image: httpd
+          ports:
+              - containerPort: 80
+
+---
+apiVersion: v1
+kind: Service
+metadata:
+    name: simple-httpd-service
+    namespace: test
+spec:
+    selector:
+        app: simple-httpd
+    ports:
+        - protocol: TCP
+          port: 80
+          targetPort: 80
+    type: ClusterIP
+    # ClusterIP = Internal Service
+    # LoadBalancer = Expose service with Cloud LoadBalancer
+    # NodePort = Expose on every Node:Port

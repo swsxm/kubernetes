@@ -1,0 +1,27 @@
+apiVersion: batch/v1
+kind: CronJob
+metadata:
+    name: cronjob-sample
+    namespace: test
+spec:
+    schedule: "*/1 * * * *"
+    jobTemplate:
+        spec:
+            completions: 2
+            parallelism: 1
+            template:
+                spec:
+                    serviceAccountName: service-account-saple
+                    securityContext:
+                        runAsUser: 1000
+                    restartPolicy: Never
+                    containers:
+                        - name: sample-container
+                          image: ghcr.io/k8s-2025-pschoeppner/gruppe-y-client:latest
+                          args:
+                              [
+                                  "--flag",
+                                  "FromOnePodTwice",
+                                  "--server",
+                                  "http://ctf-server.ctf-server:8080",
+                              ]

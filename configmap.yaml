@@ -1,0 +1,43 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+    name: httpd-config
+    namespace: test
+data:
+    index.html: |
+        <html>
+          <head><title>Custom Hello World</title></head>
+          <body><h1>Welcome to the Custom HTTPD Server!</h1></body>
+        </html>
+    test: test-value
+
+---
+apiVersion: v1
+kind: Pod
+metadata:
+    name: simple-httpd
+    namespace: test
+spec:
+    containers:
+        - name: httpd
+          image: httpd
+          ports:
+              - containerPort: 80
+          env:
+              - name: CUSTOM_ENV_VAR
+                valueFrom:
+                    configMapKeyRef:
+                        name: httpd-config
+                        key: test
+          volumeMounts:
+              - name: config-volume
+                mountPath: /usr/local/apache2/htdocs
+
+              # only mount specific file
+              - name: config-volume
+                mountPath: /tmp/index.html
+                subPath: index.html
+    volumes:
+        - name: config-volume
+          configMap:
+              name: httpd-config

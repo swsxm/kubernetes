@@ -1,0 +1,13 @@
+apiVersion: v1
+kind: Pod
+metadata:
+    name: simple-httpd
+    namespace: test
+spec:
+    containers:
+        - name: httpd
+          image: httpd
+          ports:
+              - containerPort: 80
+          securityContext:
+              runAsUser: 1000

@@ -1,0 +1,123 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+    name: podinfo-blue
+    namespace: test
+    labels:
+        app: podinfo
+        version: blue
+spec:
+    replicas: 2
+    selector:
+        matchLabels:
+            app: podinfo
+            version: blue
+    template:
+        metadata:
+            labels:
+                app: podinfo
+                version: blue
+        spec:
+            containers:
+                - name: app-container
+                  image: ghcr.io/stefanprodan/podinfo:6.7.1
+
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+    name: podinfo-green
+    namespace: test
+    labels:
+        app: podinfo
+        version: green
+spec:
+    replicas: 2
+    selector:
+        matchLabels:
+            app: podinfo
+            version: green
+    template:
+        metadata:
+            labels:
+                app: podinfo
+                version: green
+        spec:
+            containers:
+                - name: app-container
+                  image: ghcr.io/stefanprodan/podinfo:6.7.1
+
+---
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+    name: podinfo-ingress-green
+    namespace: test
+    annotations:
+        nginx.ingress.kubernetes.io/canary: "true"
+        nginx.ingress.kubernetes.io/canary-weight: "20"
+spec:
+    ingressClassName: nginx
+    rules:
+        - host:
+          http:
+              paths:
+                  - path: /
+                    pathType: Prefix
+                    backend:
+                        service:
+                            name: podinfo-green
+                            port:
+                                number: 80
+
+---
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+    name: podinfo-ingress-blue
+    namespace: test
+spec:
+    ingressClassName: nginx
+    rules:
+        - host:
+          http:
+              paths:
+                  - path: /
+                    pathType: Prefix
+                    backend:
+                        service:
+                            name: podinfo-blue
+                            port:
+                                number: 80
+
+---
+apiVersion: v1
+kind: Service
+metadata:
+    name: podinfo-blue
+    namespace: test
+spec:
+    selector:
+        app: podinfo
+        version: blue
+    ports:
+        - protocol: TCP
+          port: 80
+          targetPort: 9898
+    type: ClusterIP
+
+---
+apiVersion: v1
+kind: Service
+metadata:
+    name: podinfo-green
+    namespace: test
+spec:
+    selector:
+        app: podinfo
+        version: green
+    ports:
+        - protocol: TCP
+          port: 80
+          targetPort: 9898
+    type: ClusterIP
